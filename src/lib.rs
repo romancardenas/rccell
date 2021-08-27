@@ -35,7 +35,7 @@ use std::pin::Pin;
 use std::rc::{Rc, Weak};
 
 /// Wrapper for `Rc<RefCell<T>>`.
-#[derive(Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Debug, Default, Eq)]
 pub struct RcCell<T>(Rc<RefCell<T>>);
 
 /// Version of `RefCell` that holds a non-owning reference to the managed allocation.
@@ -255,7 +255,6 @@ impl<T> WeakCell<T> {
         self.0.upgrade().map(RcCell)
     }
 
-
     /// Gets the number of strong (`RcCell`) pointers pointing to this allocation.
     /// If `self` was created using [WeakCell::new], this will return 0.
     pub fn strong_count(&self) -> usize {
@@ -293,9 +292,19 @@ impl<T: Display> Display for RcCell<T> {
     }
 }
 
+/// `RefCell<T>` does not implement `PartialEq`, and borrowing its inner value can cause a lot of panic errors.
+/// Therefore, `Hash` will only use the value of the `Rc` pointer inside `RefCell<T>`.
 impl<T> Hash for RcCell<T> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.0.as_ptr().hash(state);
+    }
+}
+
+/// `RefCell<T>` does not implement `PartialEq`, and borrowing its inner value can cause a lot of panic errors.
+/// Therefore, `PartialEq` will check that two `RefCell<T>` point to the exact same allocation.
+impl<T> PartialEq for RcCell<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.as_ptr() == other.0.as_ptr()
     }
 }
 
@@ -422,13 +431,15 @@ mod tests {
         let b = a.clone();
         let c = RcCell::new(DummyStruct::new("dummy"));
         assert_eq!(a, b);
-        assert_eq!(a, c);
+        assert_ne!(a, c);
+        assert_eq!(*a.borrow(), *c.borrow());
         assert!(RcCell::ptr_eq(&a, &b));
         assert!(!RcCell::ptr_eq(&a, &c));
 
         a.borrow_mut().name = String::from("DUMMY");
         assert_eq!(a, b);
         assert_ne!(a, c);
+        assert_ne!(*a.borrow(), *c.borrow());
     }
 
     #[test]
