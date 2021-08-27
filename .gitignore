@@ -1,0 +1,7 @@
+.idea
+.DS_Store
+debug/
+target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
