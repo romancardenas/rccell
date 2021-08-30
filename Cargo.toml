@@ -1,6 +1,6 @@
 [package]
 name = "rccell"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Román Cárdenas <rcardenas.rod@gmail.com>"]
 edition = "2018"
 description = "A convenient wrapper for Rc<RefCell<T>>"

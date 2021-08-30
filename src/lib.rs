@@ -27,8 +27,7 @@
 
 use std::cell::{BorrowError, BorrowMutError, Ref, RefCell, RefMut};
 use std::cmp::PartialEq;
-use std::fmt;
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 use std::pin::Pin;
@@ -39,7 +38,7 @@ use std::rc::{Rc, Weak};
 pub struct RcCell<T>(Rc<RefCell<T>>);
 
 /// Version of `RefCell` that holds a non-owning reference to the managed allocation.
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct WeakCell<T>(Weak<RefCell<T>>);
 
 impl<T> RcCell<T> {
@@ -286,12 +285,6 @@ impl<T> Deref for RcCell<T> {
     }
 }
 
-impl<T: Display> Display for RcCell<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0.borrow())
-    }
-}
-
 /// `RefCell<T>` does not implement `PartialEq`, and borrowing its inner value can cause a lot of panic errors.
 /// Therefore, `Hash` will only use the value of the `Rc` pointer inside `RefCell<T>`.
 impl<T> Hash for RcCell<T> {
@@ -314,11 +307,15 @@ impl<T> Clone for WeakCell<T> {
     }
 }
 
-impl<T: Display> Display for WeakCell<T> {
+/*
+/// `WeakCell<T>` implements the `Debug` trait exactly as `Weak<T>`.
+impl<T> Debug for WeakCell<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0.upgrade().ok_or(std::fmt::Error)?.borrow())
+        write!(f, "(WeakCell)")
     }
 }
+
+ */
 
 #[cfg(test)]
 mod tests {
