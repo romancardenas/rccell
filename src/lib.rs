@@ -278,6 +278,8 @@ impl<T> Clone for RcCell<T> {
     }
 }
 
+/// `RefCell<T>` does not implement `Deref`, and borrowing its inner value can cause a lot of panic errors.
+/// Therefore, `Deref::deref` will return a reference to the inner `RefCell<T>`.
 impl<T> Deref for RcCell<T> {
     type Target = RefCell<T>;
     fn deref(&self) -> &Self::Target {
@@ -306,16 +308,6 @@ impl<T> Clone for WeakCell<T> {
         WeakCell(self.0.clone())
     }
 }
-
-/*
-/// `WeakCell<T>` implements the `Debug` trait exactly as `Weak<T>`.
-impl<T> Debug for WeakCell<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "(WeakCell)")
-    }
-}
-
- */
 
 #[cfg(test)]
 mod tests {
